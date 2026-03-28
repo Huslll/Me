@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>فضاء شاعري</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+      font-family: sans-serif;
+    }
+    
+    .bg-layer {
+      position: absolute;
+      top: -5%;
+      left: -5%;
+      width: 110%;
+      height: 110%;
+      background-image: url('https://images.pexels.com/photos/27558496/pexels-photo-27558496.jpeg');
+      background-size: cover;
+      background-position: center;
+      z-index: 1;
+      will-change: transform;
+    }
+    
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 2;
+    }
+    
+    .poem-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      text-align: center;
+      width: 90%;
+      max-width: 600px;
+      pointer-events: none;
+    }
+    
+    .poem-text {
+      color: rgba(255, 255, 255, 0.95);
+      font-family: 'Amiri', serif;
+      font-size: 19px;
+      font-weight: 400;
+      line-height: 1.6;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    
+    .audio-box {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 85%;
+      max-width: 340px;
+      height: 54px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 20px;
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+    }
+    
+    .play-btn {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: opacity 0.2s ease;
+      opacity: 0.9;
+    }
+    
+    .play-icon {
+      width: 0;
+      height: 0;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 14px solid rgba(255, 255, 255, 0.95);
+      margin-left: 4px;
+    }
+    
+    .pause-icon {
+      display: none;
+      gap: 4px;
+    }
+    
+    .pause-bar {
+      width: 4px;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 2px;
+    }
+    
+    /* تعديل اسم الأغنية ليكون في الوسط وبخط Montserrat */
+    .track-info {
+      flex-grow: 1;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 14px;
+      font-family: 'Montserrat', sans-serif;
+      /* خط Montserrat */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 30px;
+      /* موازنة المسافة مع زر التشغيل */
+    }
+  </style>
+</head>
+
+<body>
+  
+  <div id="scene">
+    <div class="bg-layer" id="bgLayer"></div>
+    <div class="overlay"></div>
+    
+    <div class="poem-container">
+      <pre class="poem-text">
+چا شرد اگلك بعد
+واندهلك بيا صفة
+وأنتَ اگرب من النفس
+ومن شفتك انه الحزن
+من كل حياتي اختفى
+ياسلوتي ومنيتي
+يا بسمتي ودمعتي
+يا مالك العاطفة
+يا اترف من الورد</pre>
+    </div>
+    
+    <div class="audio-box">
+      <div class="play-btn" id="playBtn">
+        <div class="play-icon" id="playIcon"></div>
+        <div class="pause-icon" id="pauseIcon">
+          <div class="pause-bar"></div>
+          <div class="pause-bar"></div>
+        </div>
+      </div>
+      <div class="track-info">Floating In Reverie</div>
+    </div>
+  </div>
+  
+  <audio id="myAudio" loop>
+    <source src="FIR.mp3" type="audio/mpeg">
+  </audio>
+  
+  <script>
+    const bg = document.getElementById('bgLayer');
+    const playBtn = document.getElementById('playBtn');
+    const audio = document.getElementById('myAudio');
+    const playIcon = document.getElementById('playIcon');
+    const pauseIcon = document.getElementById('pauseIcon');
+    
+    let targetX = 0,
+      targetY = 0,
+      currentX = 0,
+      currentY = 0,
+      autoMoveTime = 0;
+    
+    function update() {
+      autoMoveTime += 0.003;
+      let autoX = Math.sin(autoMoveTime) * 6;
+      let autoY = Math.cos(autoMoveTime * 0.5) * 6;
+      currentX += ((targetX + autoX) - currentX) * 0.02;
+      currentY += ((targetY + autoY) - currentY) * 0.02;
+      bg.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) scale(1.04)`;
+      requestAnimationFrame(update);
+    }
+    
+    window.addEventListener('deviceorientation', (e) => {
+      if (e.gamma !== null && e.beta !== null) {
+        targetX = (e.gamma / 45) * 10;
+        targetY = ((e.beta - 45) / 45) * 10;
+      }
+    });
+    
+    let isPlaying = false;
+    playBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (!isPlaying) {
+        audio.play();
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'flex';
+      } else {
+        audio.pause();
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+      }
+      isPlaying = !isPlaying;
+    };
+    
+    document.body.onclick = () => {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission();
+      }
+    };
+    
+    update();
+  </script>
+</body>
+
+</html>
