@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>القمرچية</title>
+  
+  <!-- إعدادات PWA لتثبيت التطبيق -->
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="القمرچية">
+  <link rel="manifest" href='data:application/manifest+json,{"name":"القمرچية","short_name":"القمرچية","start_url":".","display":"standalone","background_color":"#f8fafc","theme_color":"#4f46e5","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎴</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
+  
+  <!-- Chart.js for graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-card-bg: rgba(255, 255, 255, 0.78);
+      --glass-border: rgba(255, 255, 255, 0.9);
+      --glass-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
+      --glass-blur: blur(25px);
+      
+      --primary: #4f46e5;
+      --primary-light: rgba(79, 70, 229, 0.12);
+      --accent-gold: #d97706;
+      --green: #10b981;
+      --red: #ef4444;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    body::before,
+    body::after {
+      position: fixed;
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: rgba(0, 0, 0, 0.03);
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    body::before {
+      content: "\f004";
+      font-size: 25vw;
+      top: -50px;
+      right: -50px;
+    }
+    
+    body::after {
+      content: "\f0c2";
+      font-size: 30vw;
+      bottom: 50px;
+      left: -80px;
+    }
+    
+    .container {
+      width: 92%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+    }
+    
+    .glass-card {
+      background: var(--glass-card-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      border-radius: 28px;
+      padding: 20px;
+      margin: 10px 0;
+      width: 100%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    h1,
+    h2,
+    h3 {
+      text-align: center;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+    
+    h1 {
+      font-size: 1.4rem;
+      background: linear-gradient(45deg, var(--primary), #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    h2 {
+      font-size: 1.15rem;
+    }
+    
+    h3 {
+      font-size: 0.95rem;
+      color: var(--text-sub);
+    }
+    
+    .input-group {
+      margin-bottom: 10px;
+    }
+    
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+    
+    input[type="text"]:focus,
+    select:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px var(--primary-light);
+    }
+    
+    .btn-glass {
+      width: 100%;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-glass:active {
+      transform: scale(0.95);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, var(--red) 0%, #dc2626 100%);
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25);
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
+    }
+    
+    /* زر Undo الثابت والصغير في الأسفل */
+    .btn-undo-fixed {
+      position: fixed;
+      bottom: 80px;
+      left: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid var(--glass-border);
+      color: var(--primary);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      z-index: 999;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-undo-fixed:active {
+      transform: scale(0.9);
+      background: #ffffff;
+    }
+    
+    .checkbox-glass {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--glass-border);
+      margin: 10px 0;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+    
+    .checkbox-glass input {
+      accent-color: var(--primary);
+      width: 20px;
+      height: 20px;
+    }
+    
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+    
+    .player-card {
+      background: linear-gradient(145deg, #ffffff, #f8fafc);
+      border: 2px solid #ffffff;
+      border-radius: 20px;
+      padding: 16px 10px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .player-card::before {
+      content: '♠';
+      position: absolute;
+      top: 6px;
+      right: 10px;
+      font-size: 0.85rem;
+      color: rgba(0, 0, 0, 0.12);
+    }
+    
+    .player-card::after {
+      content: '♦';
+      position: absolute;
+      bottom: 6px;
+      left: 10px;
+      font-size: 0.85rem;
+      color: rgba(220, 38, 38, 0.15);
+    }
+    
+    .player-card:active {
+      transform: scale(0.93);
+      background: var(--primary-light);
+    }
+    
+    .player-card .p-name {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      font-weight: 800;
+    }
+    
+    .player-card .p-wins {
+      font-size: 0.72rem;
+      color: var(--accent-gold);
+      font-weight: 700;
+      margin: 4px 0 6px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    
+    .player-card .p-val {
+      font-size: 1.35rem;
+      font-weight: 900;
+    }
+    
+    .win {
+      color: var(--green);
+    }
+    
+    .loss {
+      color: var(--red);
+    }
+    
+    /* Dynamic Page Transitions */
+    .page-view {
+      display: none;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(18px) scale(0.97);
+      transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .page-view.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    
+    .floating-nav {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 88%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+      border-radius: 35px;
+      padding: 6px 10px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-sub);
+      font-size: 0.72rem;
+      padding: 8px 16px;
+      border-radius: 22px;
+      cursor: pointer;
+      gap: 3px;
+      font-weight: 700;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .nav-item i {
+      font-size: 1.1rem;
+    }
+    
+    .nav-item:active {
+      transform: scale(0.9);
+    }
+    
+    .nav-item.active {
+      color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .sub-panel {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+    
+    .sub-panel.open {
+      display: block;
+    }
+    
+    .sub-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      font-size: 0.85rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      margin: 12px auto 0 auto;
+    }
+    
+    .chart-box {
+      position: relative;
+      height: 200px;
+      width: 100%;
+      margin-top: 8px;
+    }
+    
+    #toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: rgba(30, 41, 59, 0.92);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      text-align: center;
+      border-radius: 30px;
+      padding: 10px 20px;
+      position: fixed;
+      z-index: 2000;
+      top: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(-15px);
+    }
+    
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 16px;
+      padding: 12px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      text-align: center;
+    }
+    
+    .stat-card.full-width {
+      grid-column: span 2;
+    }
+    
+    .stat-card .title {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    
+    .stat-card .value {
+      font-size: 1.1rem;
+      font-weight: 900;
+    }
+  </style>
+</head>
+
+<body>
+  
+  <div id="toast">تمت العملية</div>
+  
+  <div class="container">
+    
+    <!-- PAGE 1: SETUP -->
+    <div id="page-setup" class="page-view active">
+      <div class="glass-card">
+        <h1>اللاعبين 🃏</h1>
+        
+        <div id="player-inputs">
+          <div class="input-group"><label>اللاعب 1</label><input type="text" id="setup-p1" placeholder="لاعب 1"></div>
+          <div class="input-group"><label>اللاعب 2</label><input type="text" id="setup-p2" placeholder="لاعب 2"></div>
+          <div class="input-group"><label>اللاعب 3</label><input type="text" id="setup-p3" placeholder="لاعب 3"></div>
+          <div class="input-group"><label>اللاعب 4</label><input type="text" id="setup-p4" placeholder="لاعب 4"></div>
+          <div class="input-group"><label>اللاعب 5</label><input type="text" id="setup-p5" placeholder="لاعب 5"></div>
+        </div>
+        
+        <label class="checkbox-glass">
+          <span>تصفير النقاط عند البدء</span>
+          <input type="checkbox" id="reset-points-on-start" checked>
+        </label>
+        
+        <button class="btn-glass" onclick="startOrContinueGame()">
+          <i class="fa-solid fa-play"></i> بدء اللعب
+        </button>
+      </div>
+    </div>
+    
+    <!-- PAGE 2: MAIN RECORDING -->
+    <div id="page-main" class="page-view">
+      
+      <div class="glass-card">
+        <!-- تم مسح عنوان الصفحة بالكامل -->
+        
+        <label class="checkbox-glass">
+          <span>بيت 500</span>
+          <input type="checkbox" id="is-final-round">
+        </label>
+        
+        <div class="cards-grid" id="main-cards-grid"></div>
+        
+        <!-- زر تصفير النقاط الكبيرة داخل الصفحة -->
+        <button class="btn-glass btn-warning" onclick="resetPointsOnly()" style="margin-top: 15px;">
+          <i class="fa-solid fa-arrows-rotate"></i> تصفير النقاط
+        </button>
+        
+        <button class="sub-toggle-btn" onclick="toggleSubPanel()">
+          <i class="fa-solid fa-user-gear"></i> تبديل لاعب <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        
+        <div class="sub-panel" id="sub-panel">
+          <div class="input-group">
+            <label>المستبدل:</label>
+            <select id="out-player-select"></select>
+          </div>
+          <div class="input-group">
+            <label>البديل:</label>
+            <select id="in-player-select"></select>
+          </div>
+          <button class="btn-glass" onclick="executeSwap()" style="margin-top: 6px; padding: 10px; font-size:0.88rem;">
+            تأكيد
+          </button>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- PAGE 3: STATS -->
+    <div id="page-stats" class="page-view">
+      
+      <div class="glass-card">
+        <h2>الإحصائيات 📊</h2>
+        <div class="stats-grid">
+          <div class="stat-card full-width">
+            <div class="title">المباريات</div>
+            <div class="value" id="month-games-count">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="title"><i class="fa-solid fa-trophy" style="color:var(--accent-gold)"></i> الأكثر فوزاً</div>
+            <div class="value win" id="stat-most-wins">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="title"><i class="fa-solid fa-sack-dollar" style="color:var(--green)"></i> الأعلى أرباحاً</div>
+            <div class="value win" id="stat-top-winner">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="title">الأقل فوزاً</div>
+            <div class="value" id="stat-least-wins" style="color:var(--text-sub)">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="title"><i class="fa-solid fa-arrow-trend-down" style="color:var(--red)"></i> الأكثر خسارة</div>
+            <div class="value loss" id="stat-top-loser">-</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-card">
+        <h3>الأداء اليومي</h3>
+        <div class="chart-box"><canvas id="lineChart"></canvas></div>
+      </div>
+      
+      <div class="glass-card">
+        <h3>النقاط</h3>
+        <div class="chart-box"><canvas id="barChart"></canvas></div>
+        
+        <button class="btn-glass btn-danger" onclick="resetAllData()" style="margin-top: 16px;">
+          <i class="fa-solid fa-trash-can"></i> مسح البيانات
+        </button>
+      </div>
+      
+    </div>
+    
+  </div>
+  
+  <!-- زر Undo الصغير والثابت في الأسفل على اليسار -->
+  <button id="btn-undo-fixed" class="btn-undo-fixed" onclick="undoLastRound()" style="display: none;" title="تراجع">
+    <i class="fa-solid fa-rotate-left"></i>
+  </button>
+  
+  <!-- Floating Nav -->
+  <div class="floating-nav">
+    <div class="nav-item active" id="nav-setup" onclick="switchPage('setup')">
+      <i class="fa-solid fa-users"></i>
+      <span>اللاعبين</span>
+    </div>
+    <div class="nav-item" id="nav-main" onclick="switchPage('main')">
+      <i class="fa-solid fa-gamepad"></i>
+      <span>التسجيل</span>
+    </div>
+    <div class="nav-item" id="nav-stats" onclick="switchPage('stats')">
+      <i class="fa-solid fa-chart-pie"></i>
+      <span>الإحصائيات</span>
+    </div>
+  </div>
+  
+  <script>
+    let players = {};
+    let activePlayers = [];
+    let historyLogs = [];
+    let lastTapTime = 0;
+    let lastTapPlayer = null;
+    
+    let lineChart = null;
+    let barChart = null;
+    
+    window.onload = function() {
+      loadFromCache();
+      initCharts();
+      
+      const defaults = ['لاعب 1', 'لاعب 2', 'لاعب 3', 'لاعب 4', 'لاعب 5'];
+      for (let i = 1; i <= 5; i++) {
+        const input = document.getElementById(`setup-p${i}`);
+        input.value = activePlayers[i - 1] || defaults[i - 1];
+      }
+      
+      updateUI();
+      
+      // PWA Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+      }
+    };
+    
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.classList.add("show");
+      setTimeout(() => { toast.classList.remove("show"); }, 2000);
+    }
+    
+    function switchPage(pageId) {
+      const current = document.querySelector('.page-view.active');
+      const targetPage = document.getElementById(`page-${pageId}`);
+      
+      if (current === targetPage) return;
+      
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById(`nav-${pageId}`).classList.add('active');
+      
+      if (current) {
+        current.style.opacity = '0';
+        current.style.transform = 'translateY(-12px) scale(0.97)';
+        setTimeout(() => {
+          current.classList.remove('active');
+          targetPage.classList.add('active');
+          void targetPage.offsetWidth; // Force Reflow
+          targetPage.style.opacity = '1';
+          targetPage.style.transform = 'translateY(0) scale(1)';
+          if (pageId === 'stats') updateCharts();
+        }, 200);
+      } else {
+        targetPage.classList.add('active');
+      }
+    }
+    
+    function startOrContinueGame() {
+      const names = [];
+      for (let i = 1; i <= 5; i++) {
+        const pVal = document.getElementById(`setup-p${i}`).value.trim() || `لاعب ${i}`;
+        names.push(pVal);
+      }
+      
+      const shouldReset = document.getElementById('reset-points-on-start').checked;
+      
+      if (shouldReset) {
+        players = {};
+        names.forEach(p => { players[p] = { balance: 0, wins: 0, active: true }; });
+        historyLogs = [];
+      } else {
+        names.forEach(p => {
+          if (!players[p]) players[p] = { balance: 0, wins: 0, active: true };
+          else players[p].active = true;
+        });
+        Object.keys(players).forEach(p => {
+          if (!names.includes(p)) players[p].active = false;
+        });
+      }
+      
+      activePlayers = names;
+      saveToCache();
+      updateUI();
+      switchPage('main');
+    }
+    
+    function resetPointsOnly() {
+      if (confirm("تصفير جميع النقاط؟")) {
+        Object.keys(players).forEach(p => {
+          players[p].balance = 0;
+          players[p].wins = 0;
+        });
+        historyLogs = [];
+        saveToCache();
+        updateUI();
+        showToast("تم تصفير النقاط");
+      }
+    }
+    
+    function handleCardTap(playerName) {
+      if (players[playerName] && !players[playerName].active) return;
+      
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTapTime;
+      
+      if (lastTapPlayer === playerName && tapLength < 400 && tapLength > 0) {
+        recordWin(playerName);
+        showToast(`🏆 فوز ${playerName}`);
+        lastTapTime = 0;
+        lastTapPlayer = null;
+      } else {
+        lastTapTime = currentTime;
+        lastTapPlayer = playerName;
+      }
+    }
+    
+    function recordWin(winner) {
+      const isFinal = document.getElementById('is-final-round').checked;
+      const stake = isFinal ? 500 : 250;
+      const totalPot = stake * activePlayers.length;
+      
+      activePlayers.forEach(p => {
+        if (p === winner) {
+          players[p].balance += (totalPot - stake);
+          players[p].wins += 1;
+        } else {
+          players[p].balance -= stake;
+        }
+      });
+      
+      let snapshot = {
+        timestamp: new Date().getTime(),
+        winner: winner,
+        stake: stake,
+        activeAtTime: [...activePlayers],
+        balances: {},
+        wins: {}
+      };
+      
+      Object.keys(players).forEach(p => {
+        snapshot.balances[p] = players[p].balance;
+        snapshot.wins[p] = players[p].wins;
+      });
+      
+      historyLogs.push(snapshot);
+      document.getElementById('is-final-round').checked = false;
+      
+      saveToCache();
+      updateUI();
+    }
+    
+    function undoLastRound() {
+      if (historyLogs.length === 0) return;
+      
+      historyLogs.pop();
+      
+      if (historyLogs.length > 0) {
+        const prevSnapshot = historyLogs[historyLogs.length - 1];
+        Object.keys(players).forEach(p => {
+          players[p].balance = prevSnapshot.balances[p] !== undefined ? prevSnapshot.balances[p] : 0;
+          players[p].wins = prevSnapshot.wins[p] !== undefined ? prevSnapshot.wins[p] : 0;
+        });
+      } else {
+        Object.keys(players).forEach(p => {
+          players[p].balance = 0;
+          players[p].wins = 0;
+        });
+      }
+      
+      saveToCache();
+      updateUI();
+      showToast("تم التراجع");
+    }
+    
+    function toggleSubPanel() {
+      const panel = document.getElementById('sub-panel');
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) {
+        populateSubDropdowns();
+      }
+    }
+    
+    function populateSubDropdowns() {
+      const outSelect = document.getElementById('out-player-select');
+      const inSelect = document.getElementById('in-player-select');
+      
+      outSelect.innerHTML = '';
+      inSelect.innerHTML = '';
+      
+      activePlayers.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        outSelect.appendChild(opt);
+      });
+      
+      Object.keys(players).filter(p => !activePlayers.includes(p)).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        inSelect.appendChild(opt);
+      });
+      
+      const newOpt = document.createElement('option');
+      newOpt.value = '__NEW__';
+      newOpt.textContent = '+ لاعب جديد...';
+      inSelect.appendChild(newOpt);
+    }
+    
+    function executeSwap() {
+      const outP = document.getElementById('out-player-select').value;
+      let inP = document.getElementById('in-player-select').value;
+      
+      if (!outP) return;
+      
+      if (inP === '__NEW__') {
+        const name = prompt("أدخل اسم اللاعب الجديد:");
+        if (!name || !name.trim()) return;
+        inP = name.trim();
+        players[inP] = { balance: 0, wins: 0, active: true };
+      }
+      
+      const idx = activePlayers.indexOf(outP);
+      if (idx !== -1) {
+        activePlayers[idx] = inP;
+        if (players[outP]) players[outP].active = false;
+        if (players[inP]) players[inP].active = true;
+      }
+      
+      toggleSubPanel();
+      saveToCache();
+      updateUI();
+      showToast(`تم استبدال ${outP} بـ ${inP}`);
+    }
+    
+    function resetAllData() {
+      if (confirm("هل أنت تأكد من مسح جميع البيانات والإحصائيات نهائياً؟")) {
+        localStorage.clear();
+        players = {};
+        activePlayers = [];
+        historyLogs = [];
+        location.reload();
+      }
+    }
+    
+    function saveToCache() {
+      localStorage.setItem('kan_players', JSON.stringify(players));
+      localStorage.setItem('kan_active', JSON.stringify(activePlayers));
+      localStorage.setItem('kan_history', JSON.stringify(historyLogs));
+    }
+    
+    function loadFromCache() {
+      const p = localStorage.getItem('kan_players');
+      const a = localStorage.getItem('kan_active');
+      const h = localStorage.getItem('kan_history');
+      
+      if (p) players = JSON.parse(p);
+      if (a) activePlayers = JSON.parse(a);
+      if (h) historyLogs = JSON.parse(h);
+    }
+    
+    function updateUI() {
+      const grid = document.getElementById('main-cards-grid');
+      grid.innerHTML = '';
+      
+      activePlayers.forEach(p => {
+        const pData = players[p] || { balance: 0, wins: 0 };
+        const card = document.createElement('div');
+        card.className = 'player-card';
+        card.onclick = () => handleCardTap(p);
+        
+        const valClass = pData.balance >= 0 ? 'win' : 'loss';
+        const sign = pData.balance > 0 ? '+' : '';
+        
+        card.innerHTML = `
+          <div class="p-name">${p}</div>
+          <div class="p-wins"><i class="fa-solid fa-trophy"></i> ${pData.wins} فوز</div>
+          <div class="p-val ${valClass}">${sign}${pData.balance}</div>
+        `;
+        
+        grid.appendChild(card);
+      });
+      
+      // التحكم بظهور زر Undo الثابت
+      const undoBtn = document.getElementById('btn-undo-fixed');
+      if (undoBtn) {
+        undoBtn.style.display = historyLogs.length > 0 ? 'flex' : 'none';
+      }
+      
+      updateStatsSummary();
+    }
+    
+    function updateStatsSummary() {
+      document.getElementById('month-games-count').textContent = historyLogs.length;
+      
+      let pKeys = Object.keys(players);
+      if (pKeys.length === 0) return;
+      
+      let mostWinsP = pKeys[0],
+        topWinnerP = pKeys[0],
+        leastWinsP = pKeys[0],
+        topLoserP = pKeys[0];
+      
+      pKeys.forEach(p => {
+        if (players[p].wins > players[mostWinsP].wins) mostWinsP = p;
+        if (players[p].wins < players[leastWinsP].wins) leastWinsP = p;
+        if (players[p].balance > players[topWinnerP].balance) topWinnerP = p;
+        if (players[p].balance < players[topLoserP].balance) topLoserP = p;
+      });
+      
+      document.getElementById('stat-most-wins').textContent = `${mostWinsP} (${players[mostWinsP].wins})`;
+      document.getElementById('stat-top-winner').textContent = `${topWinnerP} (${players[topWinnerP].balance})`;
+      document.getElementById('stat-least-wins').textContent = `${leastWinsP} (${players[leastWinsP].wins})`;
+      document.getElementById('stat-top-loser').textContent = `${topLoserP} (${players[topLoserP].balance})`;
+    }
+    
+    function initCharts() {
+      const ctxLine = document.getElementById('lineChart').getContext('2d');
+      lineChart = new Chart(ctxLine, {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+      
+      const ctxBar = document.getElementById('barChart').getContext('2d');
+      barChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: { labels: [], datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+    
+    function updateCharts() {
+      let labels = historyLogs.map((_, i) => `الجولة ${i + 1}`);
+      let datasetsLine = [];
+      let pKeys = Object.keys(players);
+      
+      const colors = ['#4f46e5', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'];
+      
+      pKeys.forEach((p, idx) => {
+        let currentBal = 0;
+        let dataPoints = historyLogs.map(log => {
+          if (log.balances && log.balances[p] !== undefined) {
+            return log.balances[p];
+          }
+          return currentBal;
+        });
+        
+        datasetsLine.push({
+          label: p,
+          data: dataPoints,
+          borderColor: colors[idx % colors.length],
+          backgroundColor: colors[idx % colors.length],
+          tension: 0.3,
+          fill: false
+        });
+      });
+      
+      lineChart.data.labels = labels;
+      lineChart.data.datasets = datasetsLine;
+      lineChart.update();
+      
+      barChart.data.labels = pKeys;
+      barChart.data.datasets = [{
+        label: 'مجموع النقاط',
+        data: pKeys.map(p => players[p].balance),
+        backgroundColor: pKeys.map(p => players[p].balance >= 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)'),
+        borderRadius: 8
+      }];
+      barChart.update();
+    }
+  </script>
+</body>
+
+</html>
